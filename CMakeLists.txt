@@ -3,5 +3,5 @@ project(tinyjson)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES tinyjson.cpp tinyjson.h)
+set(SOURCE_FILES tinyjson.cpp tinyjson.h test.cpp)
 add_library(tinyjson ${SOURCE_FILES})
