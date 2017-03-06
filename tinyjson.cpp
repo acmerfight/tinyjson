@@ -26,8 +26,32 @@ static int tiny_parse_null(tiny_context* c, tiny_value* v) {
     return TINY_PARSE_OK;
 }
 
+static int tiny_parse_true(tiny_context* c, tiny_value* v) {
+    EXPECT(c, 't');
+    if (c->json[0] != 'r' || c->json[1] != 'u' || c->json[2] != 'e') {
+        return TINY_PARSE_INVALID_VALUE;
+    }
+    c->json += 3;
+    v->type = TINY_TRUE;
+    return TINY_PARSE_OK;
+}
+
+static int tiny_parse_false(tiny_context* c, tiny_value* v) {
+    EXPECT(c, 'f');
+    if (c->json[0] != 'a' || c->json[1] != 'l' || c->json[2] != 's' || c->json[3] != 'e') {
+        return TINY_PARSE_INVALID_VALUE;
+    }
+    c->json += 4;
+    v->type = TINY_FALSE;
+    return TINY_PARSE_OK;
+}
+
 static int tiny_parse_value(tiny_context* c, tiny_value* v) {
     switch (*c->json) {
+        case 't':
+            return tiny_parse_true(c, v);
+        case 'f':
+            return tiny_parse_false(c, v);
         case 'n':
             return tiny_parse_null(c, v);
         case '0':
@@ -38,12 +62,19 @@ static int tiny_parse_value(tiny_context* c, tiny_value* v) {
 }
 
 int tiny_parse(tiny_value* v, const char* json) {
+    int ret;
     tiny_context c;
     assert(v != NULL);
     c.json = json;
     v->type = TINY_NULL;
     tiny_parse_whitespace(&c);
-    return tiny_parse_value(&c, v);
+    if ((ret = tiny_parse_value(&c, v)) == TINY_PARSE_OK) {
+        tiny_parse_whitespace(&c);
+        if (*c.json != '\0') {
+            ret = TINY_PARSE_ROOT_NOT_SINGULAR;
+        }
+    }
+    return ret;
 }
 
 tiny_type tiny_get_type(const tiny_value* v) {
