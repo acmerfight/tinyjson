@@ -66,7 +66,7 @@ static void test_parse_invalid_value() {
 static void test_parse_root_not_singular() {
     tiny_value v;
     v.type = TINY_FALSE;
-    EXPECT_EQ_INT(TINY_PARSE_ROOT_NOT_SINGULAR, tiny_parse(&v, "nul ?"));
+    EXPECT_EQ_INT(TINY_PARSE_ROOT_NOT_SINGULAR, tiny_parse(&v, "null x"));
     EXPECT_EQ_INT(TINY_NULL, tiny_get_type(&v));
 
 }
