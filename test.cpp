@@ -41,10 +41,22 @@ static void test_parse_false() {
     EXPECT_EQ_INT(TINY_FALSE, tiny_get_type(&v));
 }
 
+static void test_parse_expect_value() {
+    tiny_value  v;
+    v.type = TINY_FALSE;
+    EXPECT_EQ_INT(TINY_PARSE_EXCEPT_VALUE, tiny_parse(&v, ""));
+    EXPECT_EQ_INT(TINY_NULL, tiny_get_type(&v));
+
+    v.type = TINY_FALSE;
+    EXPECT_EQ_INT(TINY_PARSE_EXCEPT_VALUE, tiny_parse(&v, " "));
+    EXPECT_EQ_INT(TINY_NULL, tiny_get_type(&v));
+}
+
 static void test_parse() {
     test_parse_null();
     test_parse_true();
     test_parse_false();
+    test_parse_expect_value();
 }
 
 int main() {
