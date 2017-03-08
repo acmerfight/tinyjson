@@ -54,7 +54,7 @@ static int tiny_parse_value(tiny_context* c, tiny_value* v) {
             return tiny_parse_false(c, v);
         case 'n':
             return tiny_parse_null(c, v);
-        case '0':
+        case '\0':
             return TINY_PARSE_EXCEPT_VALUE;
         default:
             return TINY_PARSE_INVALID_VALUE;
