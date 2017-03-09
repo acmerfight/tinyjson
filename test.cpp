@@ -20,6 +20,15 @@ static int test_pass = 0;
 
 #define EXPECT_EQ_INT(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d")
 
+
+#define TEST_ERROR(error, json) \
+    do {\
+        tiny_value v;\
+        v.type = TINY_FALSE;\
+        EXPECT_EQ_INT(error, tiny_parse(&v, json));\
+        EXPECT_EQ_INT(TINY_NULL, tiny_get_type(&v));\
+} while(0)
+
 static void test_parse_null() {
     tiny_value v;
     v.type = TINY_TRUE;
@@ -42,14 +51,8 @@ static void test_parse_false() {
 }
 
 static void test_parse_expect_value() {
-    tiny_value  v;
-    v.type = TINY_FALSE;
-    EXPECT_EQ_INT(TINY_PARSE_EXCEPT_VALUE, tiny_parse(&v, ""));
-    EXPECT_EQ_INT(TINY_NULL, tiny_get_type(&v));
-
-    v.type = TINY_FALSE;
-    EXPECT_EQ_INT(TINY_PARSE_EXCEPT_VALUE, tiny_parse(&v, " "));
-    EXPECT_EQ_INT(TINY_NULL, tiny_get_type(&v));
+    TEST_ERROR(TINY_PARSE_EXCEPT_VALUE, "");
+    TEST_ERROR(TINY_PARSE_EXCEPT_VALUE, " ");
 }
 
 static void test_parse_invalid_value() {
