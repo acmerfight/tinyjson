@@ -12,6 +12,7 @@ typedef enum {
 } tiny_type;
 
 typedef struct {
+    double n;
     tiny_type type;
 } tiny_value;
 
@@ -24,5 +25,6 @@ enum {
 
 int tiny_parse(tiny_value* v, const char* json);
 tiny_type tiny_get_type(const tiny_value* v);
+double tiny_get_number(const tiny_value* v)
 
 #endif

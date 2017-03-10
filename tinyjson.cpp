@@ -81,3 +81,8 @@ tiny_type tiny_get_type(const tiny_value* v) {
     assert(v != NULL);
     return v->type;
 }
+
+double tiny_get_number(const tiny_value* v) {
+    assert(v != NULL && v->type == TINY_NUMBER);
+    return v->n;
+}
