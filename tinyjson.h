@@ -20,7 +20,8 @@ enum {
     TINY_PARSE_OK = 0,
     TINY_PARSE_EXCEPT_VALUE,
     TINY_PARSE_INVALID_VALUE,
-    TINY_PARSE_ROOT_NOT_SINGULAR
+    TINY_PARSE_ROOT_NOT_SINGULAR,
+    TINY_PARSE_NUMBER_TOO_BIG
 };
 
 int tiny_parse(tiny_value* v, const char* json);
