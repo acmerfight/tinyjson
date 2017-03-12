@@ -21,35 +21,20 @@ static void tiny_parse_whitespace(tiny_context* c) {
     c->json = p;
 }
 
-static int tiny_parse_null(tiny_context* c, tiny_value* v) {
-    EXPECT(c, 'n');
-    if (c->json[0] != 'u' || c->json[1] != 'l' || c->json[2] != 'l') {
-        return TINY_PARSE_INVALID_VALUE;
+
+static int tiny_parse_literal(tiny_context* c, tiny_value* v, const char* literal, tiny_type type) {
+    size_t i;
+    EXPECT(c, literal[0]);
+    for (i = 0; literal[i + 1]; i++) {
+        if (c->json[i] != literal[i + 1]) {
+            return TINY_PARSE_INVALID_VALUE;
+        }
     }
-    c->json += 3;
-    v->type = TINY_NULL;
+    c->json += i;
+    v->type = type;
     return TINY_PARSE_OK;
 }
 
-static int tiny_parse_true(tiny_context* c, tiny_value* v) {
-    EXPECT(c, 't');
-    if (c->json[0] != 'r' || c->json[1] != 'u' || c->json[2] != 'e') {
-        return TINY_PARSE_INVALID_VALUE;
-    }
-    c->json += 3;
-    v->type = TINY_TRUE;
-    return TINY_PARSE_OK;
-}
-
-static int tiny_parse_false(tiny_context* c, tiny_value* v) {
-    EXPECT(c, 'f');
-    if (c->json[0] != 'a' || c->json[1] != 'l' || c->json[2] != 's' || c->json[3] != 'e') {
-        return TINY_PARSE_INVALID_VALUE;
-    }
-    c->json += 4;
-    v->type = TINY_FALSE;
-    return TINY_PARSE_OK;
-}
 
 static int tiny_parse_number(tiny_context* c, tiny_value* v) {
     const char* p = c->json;
@@ -83,11 +68,11 @@ static int tiny_parse_number(tiny_context* c, tiny_value* v) {
 static int tiny_parse_value(tiny_context* c, tiny_value* v) {
     switch (*c->json) {
         case 't':
-            return tiny_parse_true(c, v);
+            return tiny_parse_literal(c, v, "true", TINY_TRUE);
         case 'f':
-            return tiny_parse_false(c, v);
+            return tiny_parse_literal(c, v, "false", TINY_FALSE);
         case 'n':
-            return tiny_parse_null(c, v);
+            return tiny_parse_literal(c, v, "null", TINY_NULL);
         case '\0':
             return TINY_PARSE_EXCEPT_VALUE;
         default:
