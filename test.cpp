@@ -19,6 +19,7 @@ static int test_pass = 0;
     } while(0)
 
 #define EXPECT_EQ_INT(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d")
+#define EXPECT_EQ_DOUBLE(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%.17g")
 
 
 #define TEST_ERROR(error, json) \
@@ -28,6 +29,14 @@ static int test_pass = 0;
         EXPECT_EQ_INT(error, tiny_parse(&v, json));\
         EXPECT_EQ_INT(TINY_NULL, tiny_get_type(&v));\
 } while(0)
+
+
+static inline void TEST_NUMBER(double expect, char* json) {
+    tiny_value v;
+    EXPECT_EQ_INT(TINY_PARSE_OK, tiny_parse(&v, json));
+    EXPECT_EQ_INT(TINY_NUMBER, tiny_get_type(&v));
+    EXPECT_EQ_DOUBLE(expect, tiny_get_number(&v));
+}
 
 static void test_parse_null() {
     tiny_value v;
