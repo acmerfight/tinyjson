@@ -90,6 +90,7 @@ int tiny_parse(tiny_value* v, const char* json) {
     if ((ret = tiny_parse_value(&c, v)) == TINY_PARSE_OK) {
         tiny_parse_whitespace(&c);
         if (*c.json != '\0') {
+            v->type = TINY_NULL;
             ret = TINY_PARSE_ROOT_NOT_SINGULAR;
         }
     }
