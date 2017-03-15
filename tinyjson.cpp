@@ -3,6 +3,11 @@
 #include <errno.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
+
+#ifndef TINY_PARSE_STACK_INIT_SIZE
+#define TINY_PARSE_STACK_INIT_SIZE 256
+#endif
 
 
 #define EXPECT(c, ch) do {assert(*c->json == (ch)); c->json++;} while(0)
@@ -11,7 +16,27 @@
 
 typedef struct {
     const char* json;
+    char* stack;
+    size_t size, top;
 }tiny_context;
+
+
+static void* tiny_context_push(tiny_context* c, size_t size) {
+    void* ret;
+    assert(size > 0);
+    if (c->top + size >= c->size) {
+        if (c->size == 0) {
+            c->size = TINY_PARSE_STACK_INIT_SIZE;
+        }
+        while (c->top + size >= c->size) {
+            c->size += c->size >> 1;
+        }
+        c->stack = (char*)realloc(c->stack, c->size);
+    }
+    ret = c->stack + c->top;
+    c->top += size;
+    return ret;
+}
 
 static void tiny_parse_whitespace(tiny_context* c) {
     const char *p = c->json;
