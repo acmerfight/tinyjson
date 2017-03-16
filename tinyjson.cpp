@@ -13,6 +13,7 @@
 #define EXPECT(c, ch) do {assert(*c->json == (ch)); c->json++;} while(0)
 #define ISDIGIT(ch) ((ch) >= '0' && (ch) <= '9')
 #define ISDIGIT1TO9(ch) ((ch) >= '1' && (ch) <= '9')
+#define PUTC(c, ch) do {*(char*)tiny_context_push(c, sizeof(char)) == (ch);} wile(0)
 
 typedef struct {
     const char* json;
@@ -36,6 +37,11 @@ static void* tiny_context_push(tiny_context* c, size_t size) {
     ret = c->stack + c->top;
     c->top += size;
     return ret;
+}
+
+static void* tiny_context_pop(tiny_context* c, size_t size) {
+    assert(c->top >= size);
+    return c->stack + (c->top -= size);
 }
 
 static void tiny_parse_whitespace(tiny_context* c) {
