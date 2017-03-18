@@ -13,7 +13,7 @@
 #define EXPECT(c, ch) do {assert(*c->json == (ch)); c->json++;} while(0)
 #define ISDIGIT(ch) ((ch) >= '0' && (ch) <= '9')
 #define ISDIGIT1TO9(ch) ((ch) >= '1' && (ch) <= '9')
-#define PUTC(c, ch) do {*(char*)tiny_context_push(c, sizeof(char)) == (ch);} wile(0)
+#define PUTC(c, ch) do {*(char*)tiny_context_push(c, sizeof(char)) == (ch);} while(0)
 
 typedef struct {
     const char* json;
@@ -87,13 +87,36 @@ static int tiny_parse_number(tiny_context* c, tiny_value* v) {
         for (p++; ISDIGIT(*p); p++);
     }
     errno = 0;
-    v->n = strtod(c->json, NULL);
-    if (errno == ERANGE && (v->n == HUGE_VAL || v->n == -HUGE_VAL)) {
+    v->u.n = strtod(c->json, NULL);
+    if (errno == ERANGE && (v->u.n == HUGE_VAL || v->u.n == -HUGE_VAL)) {
         return TINY_PARSE_NUMBER_TOO_BIG;
     }
     c->json = p;
     v->type = TINY_NUMBER;
     return TINY_PARSE_OK;
+}
+
+
+static int tiny_parse_string(tiny_context* c, tiny_value* v) {
+    size_t head = c->top, len;
+    const char *p;
+    EXPECT(c, '\"');
+    p = c->json;
+    for (;;) {
+        char ch = *p++;
+        switch (ch) {
+            case '\"':
+                len = c->top - head;
+                tiny_set_string(v, (const char *)tiny_context_pop(c, len), len);
+                c->json = p;
+                return TINY_PARSE_OK;
+            case '\0':
+                c->top = head;
+                return TINY_PARSE_MISS_QUOTATION_MARK;
+            default:
+                PUTC(c, ch);
+        }
+    }
 }
 
 static int tiny_parse_value(tiny_context* c, tiny_value* v) {
@@ -104,6 +127,8 @@ static int tiny_parse_value(tiny_context* c, tiny_value* v) {
             return tiny_parse_literal(c, v, "false", TINY_FALSE);
         case 'n':
             return tiny_parse_literal(c, v, "null", TINY_NULL);
+        case '"':
+            return tiny_parse_string(c, v);
         case '\0':
             return TINY_PARSE_EXCEPT_VALUE;
         default:
@@ -111,12 +136,15 @@ static int tiny_parse_value(tiny_context* c, tiny_value* v) {
     }
 }
 
+
 int tiny_parse(tiny_value* v, const char* json) {
     int ret;
     tiny_context c;
     assert(v != NULL);
     c.json = json;
-    v->type = TINY_NULL;
+    c.stack = NULL;
+    c.size = c.top = 0;
+    tiny_init(v);
     tiny_parse_whitespace(&c);
     if ((ret = tiny_parse_value(&c, v)) == TINY_PARSE_OK) {
         tiny_parse_whitespace(&c);
@@ -125,6 +153,8 @@ int tiny_parse(tiny_value* v, const char* json) {
             ret = TINY_PARSE_ROOT_NOT_SINGULAR;
         }
     }
+    assert(c.top == 0);
+    free(c.stack);
     return ret;
 }
 
@@ -135,5 +165,45 @@ tiny_type tiny_get_type(const tiny_value* v) {
 
 double tiny_get_number(const tiny_value* v) {
     assert(v != NULL && v->type == TINY_NUMBER);
-    return v->n;
+    return v->u.n;
+}
+
+void tiny_set_number(const tiny_value* v) {
+}
+
+
+void tiny_free(tiny_value *v) {
+    assert(v != NULL);
+    if (v->type == TINY_STRING) {
+        free(v->u.s.s);
+    }
+    v->type = TINY_NULL;
+}
+
+int tiny_get_boolean(const tiny_value* v) {
+    return 0;
+}
+
+void tiny_set_boolean(const tiny_value* v, int b) {
+}
+
+const char* tiny_get_string(const tiny_value* v) {
+    assert(v != NULL && v->type == TINY_STRING);
+    return v->u.s.s;
+}
+
+size_t get_string_length(const tiny_value* v) {
+    assert(v != NULL && v->type == TINY_STRING);
+    return v->u.s.len;
+}
+
+
+void tiny_set_string(tiny_value* v, const char* s, size_t len) {
+    assert(v != NULL && (s != NULL || len == 0));
+    tiny_free(v);
+    v->u.s.s = (char *)malloc(len + 1);
+    memcpy(v->u.s.s, s, len);
+    v->u.s.s[len] = '\0';
+    v->u.s.len = len;
+    v->type = TINY_STRING;
 }

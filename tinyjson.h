@@ -1,6 +1,8 @@
 #ifndef TINYJSON_LIBRARY_H
 #define TINYJSON_LIBRARY_H
 
+#include <stddef.h>
+
 typedef enum {
     TINY_NULL,
     TINY_FALSE,
@@ -18,7 +20,7 @@ typedef struct {
             size_t len;
         } s;
         double n;
-    };
+    } u;
     tiny_type type;
 } tiny_value;
 
