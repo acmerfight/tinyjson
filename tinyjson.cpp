@@ -13,7 +13,7 @@
 #define EXPECT(c, ch) do {assert(*c->json == (ch)); c->json++;} while(0)
 #define ISDIGIT(ch) ((ch) >= '0' && (ch) <= '9')
 #define ISDIGIT1TO9(ch) ((ch) >= '1' && (ch) <= '9')
-#define PUTC(c, ch) do {*(char*)tiny_context_push(c, sizeof(char)) == (ch);} while(0)
+#define PUTC(c, ch) do {*(char*)tiny_context_push(c, sizeof(char)) = (ch); } while(0)
 
 typedef struct {
     const char* json;
@@ -38,6 +38,7 @@ static void* tiny_context_push(tiny_context* c, size_t size) {
     c->top += size;
     return ret;
 }
+
 
 static void* tiny_context_pop(tiny_context* c, size_t size) {
     assert(c->top >= size);
@@ -127,12 +128,12 @@ static int tiny_parse_value(tiny_context* c, tiny_value* v) {
             return tiny_parse_literal(c, v, "false", TINY_FALSE);
         case 'n':
             return tiny_parse_literal(c, v, "null", TINY_NULL);
+        default:
+            return tiny_parse_number(c, v);
         case '"':
             return tiny_parse_string(c, v);
         case '\0':
             return TINY_PARSE_EXCEPT_VALUE;
-        default:
-            return tiny_parse_number(c, v);
     }
 }
 
@@ -192,7 +193,7 @@ const char* tiny_get_string(const tiny_value* v) {
     return v->u.s.s;
 }
 
-size_t get_string_length(const tiny_value* v) {
+size_t tiny_get_string_length(const tiny_value* v) {
     assert(v != NULL && v->type == TINY_STRING);
     return v->u.s.len;
 }
